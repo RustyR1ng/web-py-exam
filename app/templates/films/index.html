@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% from 'pagination.html' import render_pagination %}
+
+{% block content %}
+
+<h1 class="my-5">Фильмы</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>№</th>
+            <th>Название</th>
+            <th>Жанры</th>
+            <th>Год выпуска</th>
+            <th>Рецензии</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for film in films %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ film.film_name }}</td>
+            <td>{{ ', '.join(film.genres) }} </td>
+            <td>{{ film.year_of_production }}</td>
+            <td>{{ film.reviews_a }}</td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <a class="btn btn-outline-primary" href="#">V</a>
+                    {% if current_user.is_authenticated %}
+                    {% if  current_user.can('edit') %}
+                    <a class="btn btn-outline-secondary" href="#">E</a>
+                    {% endif %}
+                    {% if current_user.can('delete') %}
+                    <button type="button" class="btn btn-outline-danger" data-toggle="modal"
+                        data-target="#delete-user-modal" data-url="#">D</button>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{{ render_pagination(request.endpoint, pagination_info) }}
+
+{% endblock %}
