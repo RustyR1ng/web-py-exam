@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1 class="my-5">{{ film.film_name }}</h1>
+
+<table class="table mt-3">
+    <tbody>
+        <tr>
+            <td>Описание</td>
+            <td>{{ markdown(bleach(film.descrip)) | safe }}</td>
+        </tr>
+        <tr>
+            <td>Год выпуска</td>
+            <td>{{ film.year_of_production }}</td>
+        </tr>
+        <tr>
+            <td>Страна</td>
+            <td>{{ film.country }}</td>
+        </tr>
+        <tr>
+            <td>Режиссер</td>
+            <td>{{ film.director }}</td>
+        </tr>
+        <tr>
+            <td>Сценарист</td>
+            <td>{{ film.scenar }}</td>
+        </tr>
+        <tr>
+            <td>Актеры</td>
+            <td>{{ film.actors }}</td>
+        </tr>
+        <tr>
+            <td>Продолжительность</td>
+            <td>{{ film.duration_min }} минут</td>
+        </tr>
+        <tr>
+            <td>Жанры</td>
+            <td>{{ genres }}</td>
+        </tr>
+    </tbody>
+</table>
+
+{% if current_user.is_authenticated and current_user.id not in users_rev %}
+<a href="{{ url_for('review', film_id=film.id) }}" class="btn btn-outline-secondary">Написать рецензию</a>
+{% elif current_user.id in users_rev %}
+<h3>Ваша рецензия</h3>
+<div>
+    <i>{{ u_review.mark }} </i>
+    <p>{{ markdown(bleach(u_review.review)) | safe }}</p>
+</div>
+{% endif %}
+
+{% if (len(reviews) > 2 and current_user.id in users_rev) or (reviews and current_user.id not in users_rev) %}
+<ul>
+    <h3>Рецензии</h3>
+    {% for review in reviews %}
+    {% if review.user_id != current_user.id %}
+    <li>
+        <h5>{{ review.login }}</h5>
+        <i>{{ review.mark }} </i>
+        <p>{{ markdown(bleach(review.review)) | safe }}</p>
+    </li>
+    {% endif %}
+    {% endfor %}
+</ul>
+{% endif %}
+{% endblock %}

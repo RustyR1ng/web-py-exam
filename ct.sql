@@ -19,7 +19,7 @@ CREATE TABLE posters(
     id INT AUTO_INCREMENT PRIMARY KEY,  
     poster_name VARCHAR(20) NOT NULL,   	/* название файла         			VARCHAR		    Да  			*/
     mime_t VARCHAR(20) NOT NULL,        	/* MIME-тип             	      	VARCHAR		    Да  			*/
-    md5_h VARCHAR(20) NOT NULL,         	/* MD5-хэш             	          	VARCHAR		    Да  			*/
+    md5_h VARCHAR(32) NOT NULL,         	/* MD5-хэш             	          	VARCHAR		    Да  			*/
     film INT NOT NULL,               		/* фильм             	          	Внешний ключ	Да  			*/
 	FOREIGN KEY(film) REFERENCES films(id) ON DELETE CASCADE
  );

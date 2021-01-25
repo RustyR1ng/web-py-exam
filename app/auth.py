@@ -62,6 +62,8 @@ def check_rights(action):
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
     if request.method == 'POST':
         user_data = dict(request.form)
         if user_data['login'] and user_data['password']:

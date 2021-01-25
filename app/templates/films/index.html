@@ -26,7 +26,7 @@
             <td>{{ film.reviews_a }}</td>
             <td>
                 <div class="btn-group btn-group-sm">
-                    <a class="btn btn-outline-primary" href="#">V</a>
+                    <a class="btn btn-outline-primary" href="{{ url_for('show_film', film_id=film.id) }}">V</a>
                     {% if current_user.is_authenticated %}
                     {% if  current_user.can('edit') %}
                     <a class="btn btn-outline-secondary" href="#">E</a>
@@ -42,6 +42,7 @@
         {% endfor %}
     </tbody>
 </table>
+
 
 {{ render_pagination(request.endpoint, pagination_info) }}
 

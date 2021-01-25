@@ -7,6 +7,9 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, curren
 from mysql_db import MySQL
 import mysql.connector as connector
 
+from markdown import markdown
+from bleach import clean as bleach
+
 app = Flask(__name__)
 application = app
 app.secret_key = os.urandom(24)
@@ -25,7 +28,8 @@ def query_ex(query, args, cursor, amount=None):
         record = cursor.fetchall()
     else:
         mysql.connection.commit()
-    return record or None
+        return
+    return record
 
 
 from auth import bp as auth_bp, init_login_manager, check_rights
@@ -80,7 +84,7 @@ def index():
 
 @app.route('/users/<int:user_id>')
 @login_required
-def show(user_id):
+def show_user(user_id):
     with mysql.connection.cursor(named_tuple=True) as cursor:
         search_user = "SELECT * FROM users WHERE id = %s;"
         user = query_ex(search_user, [user_id], cursor, 'one')
@@ -99,4 +103,63 @@ def show(user_id):
     return render_template('users/show.html',
                            user=user,
                            role=role,
-                           reviews=reviews)
+                           reviews=reviews,
+                           markdown=markdown,
+                           bleach=bleach)
+
+
+@app.route('/films/<int:film_id>')
+def show_film(film_id):
+    with mysql.connection.cursor(named_tuple=True) as cursor:
+        search_film = "SELECT * FROM films WHERE id = %s"
+        film = query_ex(search_film, [film_id], cursor, 'one')
+        search_genres = "SELECT genre_name FROM film_genre JOIN genres ON genres.id = film_genre.genre WHERE film = %s "
+        genres = query_ex(search_genres, [film_id], cursor, 'all') or ''
+    with mysql.connection.cursor(dictionary=True) as cursor:
+        search_reviews = "SELECT users.id AS user_id, login, mark, review FROM reviews JOIN users ON users.id = reviews.user WHERE film = %s"
+        current_u_review = None
+        if current_user.is_authenticated:
+            search_cur_review = search_reviews + " AND user = %s"
+            current_u_review = query_ex(search_cur_review,
+                                        [film_id, current_user.id], cursor,
+                                        'one')
+            if current_u_review:
+                current_u_review['mark'] = MARKS[current_u_review['mark']]
+        reviews = query_ex(search_reviews, [film_id], cursor, 'all') or ''
+        for review in reviews:
+            review['mark'] = MARKS[review['mark']]
+    return render_template('films/show.html',
+                           film=film,
+                           reviews=reviews,
+                           genres=', '.join(
+                               [genre.genre_name for genre in genres]),
+                           users_rev=[review['user_id'] for review in reviews],
+                           u_review=current_u_review,
+                           markdown=markdown,
+                           bleach=bleach,
+                           len=len)
+
+
+@app.route('/films/review/<int:film_id>', methods=['GET', 'POST'])
+@login_required
+def review(film_id):
+    with mysql.connection.cursor(named_tuple=True) as cursor:
+        search_cur_review = "SELECT users.id AS user_id FROM reviews JOIN users ON users.id = reviews.user WHERE film = %s AND user = %s"
+        reviewed = query_ex(search_cur_review, [film_id, current_user.id],
+                            cursor, 'one')
+        if reviewed:
+            return redirect(url_for('show_film', film_id=film_id))
+        if request.method == 'POST':
+            form_data = request.form.values()
+            insert_data = "INSERT INTO reviews (film,user,review, mark) VALUES(%s,%s,%s,%s)"
+            try:
+                query_ex(
+                    insert_data,
+                    [film_id, current_user.id, *[item for item in form_data]],
+                    cursor)
+            except connector.errors.DatabaseError as err:
+                flash('Введены некорректные данные. Ошибка сохранения.',
+                      'danger')
+                return render_template('films/review.html', data=request.form)
+            return redirect(url_for('show_film', film_id=film_id))
+    return render_template('films/review.html')

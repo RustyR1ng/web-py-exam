@@ -8,6 +8,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dark-mode.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
+    </script>
+    <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
     <title>
         {% if title %}
         {{ title }}
@@ -34,14 +39,14 @@
                         </li>
                         <li class="nav-item ms-auto">
                             {% if current_user.is_authenticated %}
-                            <div class="dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="dropdown ">
+                                <a class="nav-link dropdown-toggle btn-sm btn-outline-secondary" href="#" role="button"
+                                    id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
                                     {{ current_user.login }}
                                 </a>
                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
                                     <a class="dropdown-item"
-                                        href="{{ url_for('show', user_id=current_user.id) }}">Профиль</a>
+                                        href="{{ url_for('show_user', user_id=current_user.id) }}">Профиль</a>
                                     <a class="dropdown-item" href="{{ url_for('auth.logout') }}">Выйти</a>
                                 </div>
                             </div>
@@ -69,10 +74,6 @@
             {% endblock %}
         </div>
     </div>
-
-    <script defer src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
-    </script>
     <script defer src="{{ url_for('static', filename='js/bootstrap.min.js') }}">
     </script>
     <script defer src="{{ url_for('static', filename='js/main.js') }}"></script>
