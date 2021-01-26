@@ -27,7 +27,6 @@ def query_ex(query, args, cursor, amount=None):
     elif (amount == 'all'):
         record = cursor.fetchall()
     else:
-        mysql.connection.commit()
         return
     return record
 
@@ -157,9 +156,124 @@ def review(film_id):
                     insert_data,
                     [film_id, current_user.id, *[item for item in form_data]],
                     cursor)
+                mysql.connection.commit()
             except connector.errors.DatabaseError as err:
                 flash('Введены некорректные данные. Ошибка сохранения.',
                       'danger')
                 return render_template('films/review.html', data=request.form)
             return redirect(url_for('show_film', film_id=film_id))
     return render_template('films/review.html')
+
+
+def load_genres():
+    with mysql.connection.cursor(named_tuple=True) as cursor:
+        select_genres = "SELECT * FROM genres;"
+        genres = query_ex(select_genres, [], cursor, 'all')
+    return genres
+
+
+@app.route('/films/form-create')
+@login_required
+@check_rights('create')
+def form_create():
+    return render_template('films/create.html', genres=load_genres(), film={})
+
+
+@app.route('/films/create', methods=['POST'])
+@login_required
+@check_rights('create')
+def create():
+    form_data = {}
+    for key, val in request.form.lists():
+        if len(val) > 1:
+            form_data[key] = [int(item) for item in val] or None
+        else:
+            form_data[key] = val[0] or None
+    insert_film = '''INSERT INTO films (film_name, descrip, year_of_production, country, director, scenar, actors, duration_min)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s);'''
+    insert_film_genres = '''INSERT INTO film_genre (film, genre)
+        VALUES (%s,%s);'''
+    with mysql.connection.cursor(named_tuple=True) as cursor:
+        try:
+            query_ex(insert_film, [
+                form_data['film_name'], form_data['descrip'],
+                form_data['year_of_production'], form_data['country'],
+                form_data['director'], form_data['scenar'],
+                form_data['actors'], form_data['duration_min']
+            ], cursor)
+            film_id = cursor.lastrowid
+            for genre in form_data['genres']:
+                query_ex(insert_film_genres, [film_id, genre], cursor)
+            mysql.connection.commit()
+        except connector.errors.DatabaseError as err:
+            flash('Введены некорректные данные. Ошибка сохранения.', 'danger')
+            return render_template('films/create.html',
+                                   film=form_data,
+                                   genres=load_genres())
+    flash(f"Фильм {form_data['film_name']} был успешно создан", "success")
+    return redirect(url_for('index'))
+
+
+@app.route('/films/form-edit/<int:film_id>')
+@login_required
+@check_rights('edit')
+def form_edit(film_id):
+    with mysql.connection.cursor(dictionary=True) as cursor:
+        search_film = "SELECT * FROM films WHERE id=%s;"
+        film = query_ex(search_film, [film_id], cursor, 'one')
+        search_film_genres = "SELECT genre FROM film_genre WHERE film=%s;"
+        f_genres = query_ex(search_film_genres, [film_id], cursor, 'all')
+        film['genres'] = [genre['genre'] for genre in f_genres]
+        return render_template(
+            'films/edit.html',
+            genres=load_genres(),
+            film=film,
+        )
+
+
+@app.route('/films/edit/<int:film_id>', methods=['POST'])
+@login_required
+@check_rights('edit')
+def edit(film_id):
+    form_data = {}
+    for key, val in request.form.lists():
+        if len(val) > 1:
+            form_data[key] = [int(item) for item in val] or None
+        else:
+            form_data[key] = val[0] or None
+    film_update = '''
+        UPDATE films SET film_name=%s, descrip=%s, year_of_production=%s, country=%s, director=%s, scenar=%s, actors=%s, duration_min=%s
+        WHERE id=%s;
+    '''
+    with mysql.connection.cursor(named_tuple=True) as cursor:
+        try:
+            query_ex(film_update, [
+                form_data['film_name'], form_data['descrip'],
+                form_data['year_of_production'], form_data['country'],
+                form_data['director'], form_data['scenar'],
+                form_data['actors'], form_data['duration_min'], film_id
+            ], cursor)
+            mysql.connection.commit()
+        except connector.errors.DatabaseError as err:
+            flash('Введены некорректные данные. Ошибка сохранения.', 'danger')
+            return render_template('films/edit.html',
+                                   film=form_data,
+                                   genres=load_genres())
+    flash(f"Фильм { form_data['film_name'] } был успешно обновлён.", "success")
+    return redirect(url_for('index'))
+
+
+@app.route('/films/delete/<int:film_id>', methods=['POST'])
+@login_required
+@check_rights('delete')
+def delete(film_id):
+    with mysql.connection.cursor(named_tuple=True) as cursor:
+        try:
+            delete_film = 'DELETE FROM films WHERE id=%s;'
+            query_ex(delete_film, [film_id], cursor)
+            mysql.connection.commit()
+        except connector.errors.DatabaseError as err:
+            flash('Не удалось удалить запись', 'danger')
+            return redirect(url_for('index'))
+        flash('Запись успешно удалена', 'success')
+        return redirect(url_for('index'))

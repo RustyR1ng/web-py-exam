@@ -19,7 +19,7 @@ class UsersPolicy:
     def edit(self):
         return is_admin() or is_moder()
 
-    def new(self):
+    def create(self):
         return is_admin()
 
     def delete(self):

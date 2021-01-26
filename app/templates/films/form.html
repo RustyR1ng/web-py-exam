@@ -1,0 +1,75 @@
+{% macro render_film_form(url, genres, film={} ) %}
+<form action="{{ url }}" method="POST">
+    <div class="mb-3">
+        <label for="film_name" class="form-label ">Название</label>
+        <div class="col-md-6">
+            <input required class="form-control" type="text" name="film_name" id="film_name"
+                value="{{ film.film_name or '' }}">
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="descrip" class="form-label">Описание</label>
+        <div class="col-md-6">
+            <textarea class="form-control" type="text" name="descrip" id="descrip">{{ film.descrip or '' }}</textarea>
+            <script defer>
+                var easyMDE = new EasyMDE({
+                    element: $('#review_text')[0]
+                });
+            </script>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="country" class="form-label">Страна</label>
+        <div class="col-md-6">
+            <input class="form-control" type="text" name="country" id="country" value="{{ film.country or '' }}">
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="director" class="form-label">Режиссер</label>
+        <div class="col-md-6">
+            <input class="form-control" type="text" name="director" id="director" value="{{ film.director or '' }}">
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="scenar" class="form-label">Сценарист</label>
+        <div class="col-md-6">
+            <input class="form-control" type="text" name="scenar" id="scenar" value="{{ film.scenar or '' }}">
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="actors" class="form-label">Актеры</label>
+        <div class="col-md-6">
+            <input class="form-control" type="text" name="actors" id="actors" value="{{ film.actors or '' }}">
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="year_of_production" class="form-label">Год выпуска</label>
+        <div class="col-md-6">
+            <input class="form-control" type="number" name="year_of_production" id="year_of_production"
+                value="{{ film.year_of_production or '' }}">
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="duration_min" class="form-label">Длительность</label>
+        <div class="col-md-6">
+            <input class="form-control" type="number" name="duration_min" id="duration_min"
+                value="{{ film.duration_min or '' }}">
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="genres" class="form-label">Жанры</label>
+        <div class="col-md-6">
+            <select multiple name="genres" id="genres" class="form-control">
+                <option value="">Не выбрано</option>
+                {% for genre in genres %}
+                <option value="{{ genre.id }}" {% if genre.id in film.genres %}selected{% endif %}>
+                    {{ genre.genre_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <input type="submit" class="btn btn-primary" value="Сохранить">
+</form>
+
+{% endmacro %}

@@ -51,7 +51,7 @@
 </div>
 {% endif %}
 
-{% if (len(reviews) > 2 and current_user.id in users_rev) or (reviews and current_user.id not in users_rev) %}
+{% if (len(reviews) > 1 and current_user.id in users_rev) or (reviews and current_user.id not in users_rev) %}
 <ul>
     <h3>Рецензии</h3>
     {% for review in reviews %}
