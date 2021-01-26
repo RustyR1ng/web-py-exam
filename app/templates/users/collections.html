@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% from 'pagination.html' import render_pagination %}
+
+{% block content %}
+
+<div class="row align-items-center">
+    <h1 class="my-5 col-md-7">Подборки</h1>
+</div>
+
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Фильмы</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for collection in collections %}
+        <tr>
+            <td class="film-name">{{ collection.collection_name }}</td>
+            <td>{{ collection.films_amount }}</td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <a class="btn btn-outline-primary"
+                        href="url_for('show_collection', collection_id=collection.id) ">V</a>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if pagination_info.total_pages != 0 %}
+{{ render_pagination(request.endpoint, pagination_info, {'user_id' : current_user.id}) }}
+{% endif%}
+
+{% endblock %}

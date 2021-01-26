@@ -13,7 +13,7 @@
             <textarea class="form-control" type="text" name="descrip" id="descrip">{{ film.descrip or '' }}</textarea>
             <script defer>
                 var easyMDE = new EasyMDE({
-                    element: $('#review_text')[0]
+                    element: $('#descrip')[0]
                 });
             </script>
         </div>
@@ -59,8 +59,8 @@
     <div class="mb-3">
         <label for="genres" class="form-label">Жанры</label>
         <div class="col-md-6">
-            <select multiple name="genres" id="genres" class="form-control">
-                <option value="">Не выбрано</option>
+            <select multiple name="genres" id="genres" class="form-select form-control">
+                <option value="" {% if not film.genres %} selected {% endif %}>Не выбрано</option>
                 {% for genre in genres %}
                 <option value="{{ genre.id }}" {% if genre.id in film.genres %}selected{% endif %}>
                     {{ genre.genre_name }}
@@ -71,5 +71,4 @@
     </div>
     <input type="submit" class="btn btn-primary" value="Сохранить">
 </form>
-
 {% endmacro %}

@@ -69,3 +69,20 @@ CREATE TABLE posters(
 	FOREIGN KEY(film) REFERENCES films(id) ON DELETE CASCADE,
     FOREIGN KEY(genre) REFERENCES genres(id)
  );
+
+/* Подбоки */
+CREATE TABLE collections(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+    collection_name VARCHAR(20) NOT NULL,  
+    user INT,
+    FOREIGN KEY(user) REFERENCES users(id) ON DELETE CASCADE
+ );
+
+/* Фильм-Подбока */
+ CREATE TABLE film_collection(
+    film INT,  
+    collection INT,
+	PRIMARY KEY (film, collection),
+	FOREIGN KEY(film) REFERENCES films(id) ON DELETE CASCADE,
+    FOREIGN KEY(collection) REFERENCES collections(id) ON DELETE CASCADE
+ );

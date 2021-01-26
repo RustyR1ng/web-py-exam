@@ -6,15 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="icon" href="{{ url_for('static', filename='img/logo.jpg') }}" type="image/jpg" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dark-mode.css') }}">
     <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
-    <script defer src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dark-mode.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
         integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
     </script>
-    <script defer src="{{ url_for('static', filename='js/bootstrap.min.js') }}">
-    </script>
-    <script defer src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+
+    <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 
     <title>
         {% if title %}
@@ -25,7 +24,7 @@
     </title>
 </head>
 
-<body class="dark-mode">
+<body class="dark-mode d-flex flex-column">
     <div class="d-flex flex-column">
         <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
             <div class="container">
@@ -40,6 +39,13 @@
                             <a class="nav-link {% if request.endpoint == 'index' %}active" aria-current="page"
                                 {% endif %}" href="{{ url_for('index') }}">Главная</a>
                         </li>
+                        {% if current_user.is_authenticated and  current_user.can('collections', record=current_user) %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'show_collections' %}active"
+                                aria-current="page" {% endif %}"
+                                href="{{ url_for('show_collections', user_id = current_user.id) }}">Мои подборки</a>
+                        </li>
+                        {% endif %}
                         <li class="nav-item ms-auto">
                             {% if current_user.is_authenticated %}
                             <div class="dropdown ">
@@ -77,6 +83,9 @@
             {% endblock %}
         </div>
     </div>
+    <footer class="mt-auto p-1 ps-5">Лагутов Александр</footer>
+    <script defer src="{{ url_for('static', filename='js/bootstrap.min.js') }}">
+    </script>
     <script defer src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 

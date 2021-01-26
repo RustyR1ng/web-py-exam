@@ -1,3 +1,17 @@
 body {
   min-height: 100vh;
 }
+
+.editor-toolbar button i::before {
+  color: #bebebe !important;
+}
+.editor-toolbar button:hover {
+  background-color: #181818 !important;
+}
+
+footer {
+  background: #ffc50c;
+  color: #181818;
+  font-size: 0.6rem;
+  font-weight: 900;
+}
