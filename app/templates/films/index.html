@@ -54,8 +54,13 @@
     </tbody>
 </table>
 
-
+{% if pagination_info.total_pages != 0 %}
+{% if args %}
+{{ render_pagination(request.endpoint, pagination_info, args) }}
+{% else %}
 {{ render_pagination(request.endpoint, pagination_info) }}
+{% endif %}
+{% endif %}
 
 <div class="modal" tabindex="-1" id="delete-film-modal">
     <div class="modal-dialog modal-dialog-centered" role="document">

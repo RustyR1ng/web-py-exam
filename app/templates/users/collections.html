@@ -5,6 +5,11 @@
 
 <div class="row align-items-center">
     <h1 class="my-5 col-md-7">Подборки</h1>
+    <div class="col-md d-flex justify-content-end">
+        <button id="create" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+            data-bs-target="#create-collection-modal"
+            data-url="{{ url_for('create_collection', user_id=current_user.id) }}">+</button>
+    </div>
 </div>
 
 
@@ -24,7 +29,7 @@
             <td>
                 <div class="btn-group btn-group-sm">
                     <a class="btn btn-outline-primary"
-                        href="url_for('show_collection', collection_id=collection.id) ">V</a>
+                        href="{{ url_for('show_collection', collection_id=collection.id, user_id=current_user.id) }} ">V</a>
                 </div>
             </td>
         </tr>
@@ -35,5 +40,28 @@
 {% if pagination_info.total_pages != 0 %}
 {{ render_pagination(request.endpoint, pagination_info, {'user_id' : current_user.id}) }}
 {% endif%}
+
+
+<div class="modal" tabindex="-1" id="create-collection-modal">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Новая подборка</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><input placeholder="Название подборки" class="form-control" form="create_collection_form" type="text"
+                        name="collection_name" id="collection_name"></p>
+                <form id="create_collection_form" action="" method="POST" class="d-none">
+                    <input id="create-btn" type="submit">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <label for="create-btn" class="btn btn-primary mb-1 cursor-pointer">Добавить</label>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

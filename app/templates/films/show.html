@@ -40,11 +40,18 @@
         </tr>
     </tbody>
 </table>
-
+<div class="options mb-4">
+{% if current_user.is_authenticated and current_user.can('collections', record=current_user) %}
+<button class="btn btn-outline-primary" data-bs-toggle="modal"
+data-bs-target="#to-collection-modal"
+data-url="{{ url_for('to_collection', user_id=current_user.id, film_id=film.id) }}">В подборку</button>
+{% endif %}
 {% if current_user.is_authenticated and current_user.id not in users_rev %}
 <a href="{{ url_for('review', film_id=film.id) }}" class="btn btn-outline-secondary">Написать рецензию</a>
-{% elif current_user.id in users_rev %}
-<h3>Ваша рецензия</h3>
+{% endif %}
+</div>
+{% if current_user.is_authenticated and current_user.id in users_rev %}
+<h3 class="mb-3">Ваша рецензия</h3>
 <div>
     <i>{{ u_review.mark }} </i>
     <p>{{ markdown(bleach(u_review.review)) | safe }}</p>
@@ -52,8 +59,8 @@
 {% endif %}
 
 {% if (len(reviews) > 1 and current_user.id in users_rev) or (reviews and current_user.id not in users_rev) %}
-<ul>
-    <h3>Рецензии</h3>
+<h3 class="mb-3">Рецензии</h3>
+<ul class="reviews">
     {% for review in reviews %}
     {% if review.user_id != current_user.id %}
     <li>
@@ -65,4 +72,28 @@
     {% endfor %}
 </ul>
 {% endif %}
+
+
+<div class="modal" tabindex="-1" id="to-collection-modal">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить в подборку</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><select form="to_collection_form" class="form-control form-select" name="collection_id" id="collection_id">{% if collections %} {% for collection in collections%} <option value="{{collection.id}}">{{ collection.collection_name }}</option> {% endfor %} {% endif %}</select></p>
+                <form id="to_collection_form" action="" method="POST" class="d-none">
+                    <input id="push-btn" type="submit">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <label for="push-btn" class="btn btn-primary mb-1 cursor-pointer">Добавить</label>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 {% endblock %}

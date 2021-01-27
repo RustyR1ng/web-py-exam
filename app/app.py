@@ -116,6 +116,7 @@ def show_film(film_id):
     with mysql.connection.cursor(dictionary=True) as cursor:
         search_reviews = "SELECT users.id AS user_id, login, mark, review FROM reviews JOIN users ON users.id = reviews.user WHERE film = %s"
         current_u_review = None
+        collections = None
         if current_user.is_authenticated:
             search_cur_review = search_reviews + " AND user = %s"
             current_u_review = query_ex(search_cur_review,
@@ -123,9 +124,12 @@ def show_film(film_id):
                                         'one')
             if current_u_review:
                 current_u_review['mark'] = MARKS[current_u_review['mark']]
+            search_collections = "SELECT id, collection_name FROM collections WHERE user = %s"
+            collections = query_ex(search_collections, [current_user.id], cursor, 'all')
         reviews = query_ex(search_reviews, [film_id], cursor, 'all') or ''
         for review in reviews:
             review['mark'] = MARKS[review['mark']]
+        
     return render_template('films/show.html',
                            film=film,
                            reviews=reviews,
@@ -133,6 +137,7 @@ def show_film(film_id):
                                [genre.genre_name for genre in genres]),
                            users_rev=[review['user_id'] for review in reviews],
                            u_review=current_u_review,
+                           collections = collections,
                            markdown=markdown,
                            bleach=bleach,
                            len=len)
@@ -315,3 +320,61 @@ def show_collections(user_id):
         return render_template('users/collections.html',
                                collections=collections,
                                pagination_info=pagination_info)
+
+
+@app.route('/users/<int:user_id>/collections/<int:collection_id>')
+@login_required
+def show_collection(user_id, collection_id):
+    if not current_user.can('collections', record=load_record(user_id)):
+        flash('Вы не можете просмотреть подборки другого пользователя',
+              'warning')
+        return redirect(url_for('index'))
+    with mysql.connection.cursor(dictionary=True) as cursor:
+            page = request.args.get('page', 1, type=int)
+            count = '''SELECT count(*) AS count FROM film_collection WHERE collection = %s'''
+            total_pages = math.ceil(
+                query_ex(count, [collection_id], cursor, 'one')['count'] / PER_PAGE)
+            pagination_info = {
+                'current_page': page,
+                'total_pages': total_pages,
+                'per_page': PER_PAGE
+            }
+            search_films = '''SELECT * FROM films
+            WHERE id IN(SELECT film FROM film_collection WHERE collection = %s)
+            LIMIT %s
+            OFFSET %s;'''
+            films = query_ex(search_films,
+                               [collection_id, PER_PAGE, PER_PAGE * (page - 1)],
+                               cursor, 'all')
+            return render_template('films/index.html',
+                               films=films,
+                               pagination_info=pagination_info, args={'user_id': user_id,'collection_id': collection_id})
+    return redirect(url_for('index'))
+
+@app.route('/users/<int:user_id>/collections/create', methods=['POST'])
+@login_required
+def create_collection(user_id):
+    with mysql.connection.cursor(named_tuple=True) as cursor:
+        try:
+            create_collection = 'INSERT INTO collections (user, collection_name) VALUES (%s,%s);'
+            query_ex(create_collection, [user_id, request.form.get('collection_name')], cursor)
+            mysql.connection.commit()
+        except connector.errors.DatabaseError as err:
+            flash('Не удалось создать подборку', 'danger')
+            return redirect(url_for('show_collections', user_id=user_id))
+    flash('Подборка создана', 'success')
+    return redirect(url_for('show_collections', user_id=user_id))
+
+@app.route('/users/<int:user_id>/collections/<int:film_id>/to-collection', methods=['POST'])
+@login_required
+def to_collection(user_id, film_id):
+    with mysql.connection.cursor(named_tuple=True) as cursor:
+        try:
+            to_collection = "INSERT INTO film_collection (film, collection) VALUES (%s,%s);"
+            query_ex(to_collection, [film_id, request.form.get('collection_id')], cursor)
+            mysql.connection.commit()
+        except connector.errors.DatabaseError as err:
+            flash('Не удалось добавить фильм в подборку', 'danger')
+            return redirect(url_for('show_film', film_id=film_id))
+    flash('Фильм был добавлен в подборку', 'success')
+    return redirect(url_for('show_film', film_id=film_id))
