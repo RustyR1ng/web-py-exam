@@ -190,9 +190,11 @@ def create():
     form_data = {}
     for key, val in request.form.lists():
         if len(val) > 1:
-            form_data[key] = [int(item) for item in val if item]
+            form_data[key] = [item for item in val if item]
         else:
             form_data[key] = val[0] or None
+    if not form_data['genres']:
+        form_data['genres']=[]
     insert_film = '''INSERT INTO films (film_name, descrip, year_of_production, country, director, scenar, actors, duration_min)
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s);'''
     insert_film_genres = '''INSERT INTO film_genre (film, genre)
@@ -206,8 +208,9 @@ def create():
                 form_data['actors'], form_data['duration_min']
             ], cursor)
             film_id = cursor.lastrowid
-            for genre in form_data['genres']:
-                query_ex(insert_film_genres, [film_id, genre], cursor)
+            if form_data['genres']:
+                for genre in form_data['genres']:
+                    query_ex(insert_film_genres, [film_id, genre], cursor)
             mysql.connection.commit()
         except connector.errors.DatabaseError as err:
             flash('Введены некорректные данные. Ошибка сохранения.', 'danger')
@@ -247,7 +250,7 @@ def edit(film_id):
         UPDATE films SET film_name=%s, descrip=%s, year_of_production=%s, country=%s, director=%s, scenar=%s, actors=%s, duration_min=%s
         WHERE id=%s;
     '''
-
+    form_data['id']=film_id
     with mysql.connection.cursor(named_tuple=True) as cursor:
         try:
             query_ex(film_update, [
